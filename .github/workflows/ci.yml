@@ -46,7 +46,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     concurrency:
-      group: ci-terraform-${{ github.ref }}
+      group: ci-terraform-${{ github.ref }}-${{ matrix.dir }}
       cancel-in-progress: true
     strategy:
       fail-fast: false
