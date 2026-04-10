@@ -1,15 +1,48 @@
-name: CI/CD Pipeline
+name: Deploy To EC2
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: false
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build Docker image
-        run: docker build -t app .
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy on EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+        run: |
+          ssh "${EC2_USER}@${EC2_HOST}" '
+            set -e
+            cd /home/ubuntu/begin
+            git pull origin main
+            if [ -n "'"$DOMAIN"'" ]; then
+              export DOMAIN="'"$DOMAIN"'"
+              docker compose up -d --build app nginx
+              sleep 5
+              curl -fsS http://127.0.0.1/health
+            else
+              # Local-first path: deploy only app when domain/HTTPS is not ready yet.
+              docker compose up -d --build app
+              sleep 5
+              curl -fsS http://127.0.0.1:5000/health
+            fi
+          '

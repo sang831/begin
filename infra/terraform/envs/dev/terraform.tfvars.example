@@ -1,0 +1,10 @@
+aws_region         = "ap-southeast-1"
+name               = "begin-dev"
+vpc_cidr           = "10.10.0.0/16"
+public_subnet_cidr = "10.10.1.0/24"
+availability_zone  = "ap-southeast-1a"
+instance_type      = "t3.micro"
+# Optional: leave empty to auto-resolve latest Amazon Linux 2023 AMI from AWS SSM
+ami_id             = ""
+allowed_ssh_cidr   = "0.0.0.0/0"
+

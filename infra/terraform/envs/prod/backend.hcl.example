@@ -1,0 +1,6 @@
+bucket         = "begin-tfstate-<account-id>-<region>"
+key            = "prod/terraform.tfstate"
+region         = "ap-southeast-1"
+dynamodb_table = "begin-terraform-locks"
+encrypt        = true
+
