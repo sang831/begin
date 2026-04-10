@@ -23,7 +23,7 @@ variable "instance_type" {
 }
 
 variable "ami_id" {
-  type = string
+  type    = string
   default = ""
 }
 
